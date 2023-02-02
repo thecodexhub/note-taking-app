@@ -76,11 +76,11 @@ class User extends Equatable {
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
       id: (map['id'] ?? '') as String,
-      fullName: map['fullName'] as String,
-      username: map['username'] as String,
-      avatarUrl: map['avatarUrl'] as String,
-      updatedAt: map['updatedAt'] != null
-          ? DateTime.parse(map['updatedAt'] as String)
+      fullName: map['full_name'] as String?,
+      username: map['username'] as String?,
+      avatarUrl: map['avatar_url'] as String?,
+      updatedAt: map['updated_at'] != null
+          ? DateTime.parse(map['updated_at'] as String)
           : null,
     );
   }
