@@ -1,7 +1,4 @@
 // ignore_for_file: sort_constructors_first
-
-import 'dart:convert';
-
 import 'package:equatable/equatable.dart';
 
 /// {@template user}
