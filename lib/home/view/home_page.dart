@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:note_taking_app/app/app.dart';
+import 'package:note_taking_app/home/home.dart';
+import 'package:note_taking_app/profile/profile.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -13,12 +13,9 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Home Page'),
         actions: [
-          IconButton(
-            key: const Key('homePage_logout_iconButton'),
-            icon: const Icon(Icons.exit_to_app),
-            onPressed: () {
-              context.read<AppBloc>().add(const AppSignOutRequested());
-            },
+          InkWell(
+            onTap: () => Navigator.of(context).push(ProfilePage.route()),
+            child: const Avatar(),
           ),
         ],
       ),

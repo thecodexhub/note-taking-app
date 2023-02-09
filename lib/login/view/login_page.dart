@@ -10,14 +10,13 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('Hey I am rendering');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login Page'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: BlocProvider(
+        child: BlocProvider<LoginCubit>(
           create: (_) => LoginCubit(context.read<AuthenticationRepository>()),
           child: const LoginForm(),
         ),

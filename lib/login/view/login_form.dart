@@ -64,24 +64,28 @@ class _LoginButton extends StatelessWidget {
       builder: (context, state) {
         switch (state.status) {
           case FormzStatus.submissionInProgress:
-            return const CircularProgressIndicator();
+            return const Center(child: CircularProgressIndicator());
           case FormzStatus.submissionSuccess:
             return const TextButton(
               onPressed: null,
               child: Text('Please check your mailbox'),
             );
           default:
-            return ElevatedButton(
-              key: const Key('loginForm_continue_raisedButton'),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+            return SizedBox(
+              height: 45.0,
+              child: ElevatedButton(
+                key: const Key('loginForm_continue_raisedButton'),
+                style: ElevatedButton.styleFrom(
+                  elevation: 2.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
                 ),
+                onPressed: state.status.isValidated
+                    ? () => context.read<LoginCubit>().loginWithMagicLink()
+                    : null,
+                child: const Text('Sign up / Login via magic link'),
               ),
-              onPressed: state.status.isValidated
-                  ? () => context.read<LoginCubit>().loginWithMagicLink()
-                  : null,
-              child: const Text('Sign up / Login via magic link'),
             );
         }
       },
