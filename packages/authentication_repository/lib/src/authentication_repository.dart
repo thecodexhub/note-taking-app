@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:authentication_repository/authentication_repository.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase_flutter;
 
@@ -45,6 +48,19 @@ class FetchProfileFailure implements Exception {
   final String message;
 }
 
+/// {@template upload_avatar_failure}
+/// Thrown during uploading avatar if any failure occurs.
+/// {@endtemplate}
+class UploadAvatarFailure implements Exception {
+  /// {@macro upload_avatar_failure}
+  const UploadAvatarFailure({
+    this.message = 'An unknown error occurred.',
+  });
+
+  /// The associated error message
+  final String message;
+}
+
 /// {@template authentication_repository}
 /// Repository that manages the user authentication.
 /// {@endtemplate}
@@ -70,6 +86,10 @@ class AuthenticationRepository {
   /// Profiles table name.
   @visibleForTesting
   static const profilesTable = 'profiles';
+
+  /// Avatar bucket name.
+  @visibleForTesting
+  static const avatarsBucket = 'avatars';
 
   /// Stream of [User] which will emit the current user when
   /// the authentication state changes.
@@ -106,14 +126,18 @@ class AuthenticationRepository {
   }
 
   /// Updates user's information into the `profiles` table.
+  ///
+  /// Throws a [UpdateProfileFailure] if any exception occurs.
   Future<void> updateProfile({
     required String username,
     required String fullName,
+    required String avatarUrl,
   }) async {
     final updates = {
       'id': currentUser.id,
       'username': username,
       'full_name': fullName,
+      'avatar_url': avatarUrl,
       'updated_at': DateTime.now().toIso8601String(),
     };
 
@@ -127,6 +151,8 @@ class AuthenticationRepository {
   }
 
   /// Fetches user's information from the `profiles` table.
+  ///
+  /// Throws a [FetchProfileFailure] if any exception occurs.
   Future<User> getProfile() async {
     try {
       final profile = await _client
@@ -139,6 +165,34 @@ class AuthenticationRepository {
       throw FetchProfileFailure(message: error.message);
     } catch (_) {
       throw const FetchProfileFailure();
+    }
+  }
+
+  /// Uploads the profile avatar and returns the download url.
+  ///
+  /// Throws a [UploadAvatarFailure] if any exception occurs.
+  Future<String> uploadAvatar({
+    required Uint8List imageFileAsBytes,
+    required String imageFilePath,
+    required String? contentType,
+  }) async {
+    try {
+      final fileExt = imageFilePath.split('.').last;
+      final filePath =
+          '${currentUser.id}:${DateTime.now().toIso8601String()}.$fileExt';
+      await _client.storage.from(avatarsBucket).uploadBinary(
+            filePath,
+            imageFileAsBytes,
+            fileOptions: supabase_flutter.FileOptions(contentType: contentType),
+          );
+      final imageUrlResponse = await _client.storage
+          .from(avatarsBucket)
+          .createSignedUrl(filePath, 60 * 60 * 365 * 10);
+      return imageUrlResponse;
+    } on supabase_flutter.StorageException catch (error) {
+      throw UploadAvatarFailure(message: error.message);
+    } catch (_) {
+      throw const UploadAvatarFailure();
     }
   }
 
