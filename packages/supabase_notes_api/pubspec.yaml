@@ -1,0 +1,23 @@
+name: supabase_notes_api
+description: A Flutter implementation of the NotesApi that uses Supabase storage.
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ">=2.19.0 <3.0.0"
+  flutter: 3.7.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  meta: ^1.8.0
+  notes_api:
+    path: ../notes_api
+  rxdart: ^0.27.7
+  supabase_flutter: ^1.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mocktail: ^0.3.0
+  very_good_analysis: ^4.0.0
