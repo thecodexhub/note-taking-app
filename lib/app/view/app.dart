@@ -4,19 +4,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_taking_app/app/app.dart';
+import 'package:notes_repository/notes_repository.dart';
 
 class App extends StatelessWidget {
   const App({
     super.key,
     required AuthenticationRepository authenticationRepository,
-  }) : _authenticationRepository = authenticationRepository;
+    required NotesRepository notesRepository,
+  })  : _authenticationRepository = authenticationRepository,
+        _notesRepository = notesRepository;
 
   final AuthenticationRepository _authenticationRepository;
+  final NotesRepository _notesRepository;
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider<AuthenticationRepository>.value(
-      value: _authenticationRepository,
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<AuthenticationRepository>.value(
+          value: _authenticationRepository,
+        ),
+        RepositoryProvider<NotesRepository>.value(
+          value: _notesRepository,
+        ),
+      ],
       child: BlocProvider<AppBloc>(
         create: (context) => AppBloc(
           authenticationRepository: _authenticationRepository,

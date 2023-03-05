@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:note_taking_app/home/home.dart';
-import 'package:note_taking_app/profile/profile.dart';
+import 'package:note_taking_app/edit_note/edit_note.dart';
+import 'package:note_taking_app/notes_overview/notes_overview.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -10,14 +10,10 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home Page'),
-        actions: [
-          InkWell(
-            onTap: () => Navigator.of(context).push(ProfilePage.route()),
-            child: const Avatar(),
-          ),
-        ],
+      body: const NotesOverviewPage(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.of(context).push(EditNotePage.route()),
+        child: const Icon(Icons.add),
       ),
     );
   }
