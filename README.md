@@ -1,15 +1,8 @@
-# note_taking_app
+# Note Taking App
 
-A new Flutter project.
+Notes Keep is a note taking app made with Flutter, Supabase (For authentication with magic link) and Local Storage (Shared Preferences - For storing notes).
 
 ## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
