@@ -28,6 +28,8 @@ class NotesOverviewView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notes Keep'),
+        elevation: 0.0,
+        scrolledUnderElevation: 2.5,
         actions: const [
           NotesOverviewChangeViewButton(),
           ProfileButton(),
@@ -62,22 +64,31 @@ class NotesOverviewView extends StatelessWidget {
                 }
               }
 
-              return CupertinoScrollbar(
-                child: StaggeredGrid.count(
-                  crossAxisCount: state.view == NotesView.multiColumn ? 2 : 1,
-                  axisDirection: AxisDirection.down,
-                  crossAxisSpacing: 8,
-                  children: [
-                    for (final note in state.notes)
-                      NotesOverviewSingleNoteTile(
-                        note: note,
-                        onTap: () => Navigator.of(context).push(
-                          EditNotePage.route(initialNote: note),
-                        ),
-                        onDeleted: () {},
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const NotesOverviewNotification(),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: StaggeredGrid.count(
+                        crossAxisCount: state.view.isMultiColumn ? 2 : 1,
+                        axisDirection: AxisDirection.down,
+                        crossAxisSpacing: 2,
+                        children: [
+                          for (final note in state.notes)
+                            NotesOverviewSingleNoteTile(
+                              note: note,
+                              onTap: () => Navigator.of(context).push(
+                                EditNotePage.route(initialNote: note),
+                              ),
+                              onDeleted: () {},
+                            ),
+                        ],
                       ),
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               );
             },
           ),

@@ -22,7 +22,7 @@ class NotesOverviewSingleNoteTile extends StatelessWidget {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(),
+          side: const BorderSide(width: 0.5),
         ),
         child: Padding(
           padding: const EdgeInsets.all(12.0),
@@ -32,6 +32,8 @@ class NotesOverviewSingleNoteTile extends StatelessWidget {
               Text(
                 note.title,
                 style: theme.textTheme.titleMedium,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 8),
               Text(note.content, maxLines: 10, overflow: TextOverflow.ellipsis),
