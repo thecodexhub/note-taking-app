@@ -11,8 +11,8 @@ class NotesOverviewSubscriptionRequested extends NotesOverviewEvent {
   const NotesOverviewSubscriptionRequested();
 }
 
-class NotesOverviewNoteDeleted extends NotesOverviewEvent {
-  const NotesOverviewNoteDeleted(this.note);
+class NotesOverviewNoteSelectionRequested extends NotesOverviewEvent {
+  const NotesOverviewNoteSelectionRequested(this.note);
 
   final Note note;
 
@@ -20,15 +20,23 @@ class NotesOverviewNoteDeleted extends NotesOverviewEvent {
   List<Object> get props => [note];
 }
 
+class NotesOverviewNoteClearSelection extends NotesOverviewEvent {
+  const NotesOverviewNoteClearSelection();
+}
+
+class NotesOverviewNoteDeleted extends NotesOverviewEvent {
+  const NotesOverviewNoteDeleted();
+}
+
 class NotesOverviewUndoNoteDeletionRequested extends NotesOverviewEvent {
   const NotesOverviewUndoNoteDeletionRequested();
 }
 
 class NotesOverviewNoteViewChanged extends NotesOverviewEvent {
-  const NotesOverviewNoteViewChanged(this.view);
+  const NotesOverviewNoteViewChanged(this.orientationView);
 
-  final NotesView view;
+  final NotesOrientationView orientationView;
 
   @override
-  List<Object> get props => [view];
+  List<Object> get props => [orientationView];
 }

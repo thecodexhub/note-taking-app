@@ -7,18 +7,19 @@ class NotesOverviewChangeViewButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentView =
-        context.select((NotesOverviewBloc bloc) => bloc.state.view);
+    final currentOrientationView = context.select(
+      (NotesOverviewBloc bloc) => bloc.state.orientationView,
+    );
 
     return IconButton(
       onPressed: () => context.read<NotesOverviewBloc>().add(
             NotesOverviewNoteViewChanged(
-              currentView == NotesView.multiColumn
-                  ? NotesView.singleColumn
-                  : NotesView.multiColumn,
+              currentOrientationView == NotesOrientationView.multiColumn
+                  ? NotesOrientationView.singleColumn
+                  : NotesOrientationView.multiColumn,
             ),
           ),
-      icon: currentView == NotesView.multiColumn
+      icon: currentOrientationView == NotesOrientationView.multiColumn
           ? const Icon(Icons.grid_view)
           : const Icon(Icons.view_agenda_outlined),
     );

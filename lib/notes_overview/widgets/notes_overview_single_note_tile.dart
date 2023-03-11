@@ -6,11 +6,13 @@ class NotesOverviewSingleNoteTile extends StatelessWidget {
     super.key,
     required this.note,
     required this.onTap,
-    required this.onDeleted,
+    required this.onLongPress,
+    this.isSelected = false,
   });
   final Note note;
   final VoidCallback onTap;
-  final VoidCallback onDeleted;
+  final VoidCallback onLongPress;
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -18,11 +20,15 @@ class NotesOverviewSingleNoteTile extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Card(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(width: 0.5),
+          side: BorderSide(
+            width: isSelected ? 2.5 : 0.5,
+            color: isSelected ? theme.colorScheme.secondary : const Color(0xFF000000),
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(12.0),

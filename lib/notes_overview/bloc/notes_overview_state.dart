@@ -6,29 +6,44 @@ class NotesOverviewState extends Equatable {
   const NotesOverviewState({
     this.status = NotesOverviewStatus.initial,
     this.notes = const <Note>[],
-    this.view = NotesView.multiColumn,
-    this.lastDeletedNote,
+    this.orientationView = NotesOrientationView.multiColumn,
+    this.selectionView = NotesSelectionView.notSelected,
+    this.selectedNotes = const <Note>[],
+    this.lastDeletedNotes = const <Note>[],
   });
 
   final NotesOverviewStatus status;
   final List<Note> notes;
-  final NotesView view;
-  final Note? lastDeletedNote;
+  final NotesOrientationView orientationView;
+  final NotesSelectionView selectionView;
+  final List<Note> selectedNotes;
+  final List<Note> lastDeletedNotes;
 
   @override
-  List<Object?> get props => [status, notes, view, lastDeletedNote];
+  List<Object?> get props => [
+        status,
+        notes,
+        orientationView,
+        selectionView,
+        selectedNotes,
+        lastDeletedNotes,
+      ];
 
   NotesOverviewState copyWith({
     NotesOverviewStatus? status,
     List<Note>? notes,
-    NotesView? view,
-    Note? lastDeletedNote,
+    NotesOrientationView? orientationView,
+    NotesSelectionView? selectionView,
+    List<Note>? selectedNotes,
+    List<Note>? lastDeletedNotes,
   }) {
     return NotesOverviewState(
       status: status ?? this.status,
       notes: notes ?? this.notes,
-      view: view ?? this.view,
-      lastDeletedNote: lastDeletedNote ?? this.lastDeletedNote,
+      orientationView: orientationView ?? this.orientationView,
+      selectionView: selectionView ?? this.selectionView,
+      selectedNotes: selectedNotes ?? this.selectedNotes,
+      lastDeletedNotes: lastDeletedNotes ?? this.lastDeletedNotes,
     );
   }
 }

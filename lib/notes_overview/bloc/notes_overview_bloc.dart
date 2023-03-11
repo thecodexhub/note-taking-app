@@ -15,6 +15,8 @@ class NotesOverviewBloc extends Bloc<NotesOverviewEvent, NotesOverviewState> {
   })  : _notesRepository = notesRepository,
         super(const NotesOverviewState()) {
     on<NotesOverviewSubscriptionRequested>(_onSubscriptionRequested);
+    on<NotesOverviewNoteSelectionRequested>(_onNoteSelectionRequested);
+    on<NotesOverviewNoteClearSelection>(_onClearSelection);
     on<NotesOverviewNoteDeleted>(_onNoteDeleted);
     on<NotesOverviewUndoNoteDeletionRequested>(_onUndoDeletionRequested);
     on<NotesOverviewNoteViewChanged>(_onNoteViewChanged);
@@ -40,32 +42,74 @@ class NotesOverviewBloc extends Bloc<NotesOverviewEvent, NotesOverviewState> {
     );
   }
 
+  FutureOr<void> _onNoteSelectionRequested(
+    NotesOverviewNoteSelectionRequested event,
+    Emitter<NotesOverviewState> emit,
+  ) async {
+    final currentSelectedNotes = [...state.selectedNotes];
+    final selectedNoteIsPresent = currentSelectedNotes.contains(event.note);
+
+    if (selectedNoteIsPresent) {
+      currentSelectedNotes.remove(event.note);
+
+      if (currentSelectedNotes.isEmpty) {
+        emit(state.copyWith(selectionView: NotesSelectionView.notSelected));
+      }
+
+      emit(state.copyWith(selectedNotes: currentSelectedNotes));
+    } else {
+      if (currentSelectedNotes.isEmpty) {
+        emit(state.copyWith(selectionView: NotesSelectionView.selected));
+      }
+
+      currentSelectedNotes.add(event.note);
+      emit(state.copyWith(selectedNotes: currentSelectedNotes));
+    }
+  }
+
+  FutureOr<void> _onClearSelection(
+    NotesOverviewNoteClearSelection event,
+    Emitter<NotesOverviewState> emit,
+  ) async {
+    emit(state.copyWith(
+      selectedNotes: const <Note>[],
+      selectionView: NotesSelectionView.notSelected,
+    ));
+  }
+
   FutureOr<void> _onNoteDeleted(
     NotesOverviewNoteDeleted event,
     Emitter<NotesOverviewState> emit,
   ) async {
-    emit(state.copyWith(lastDeletedNote: event.note));
-    await _notesRepository.deleteNote(event.note.id);
+    emit(state.copyWith(lastDeletedNotes: state.selectedNotes));
+
+    for (final note in state.selectedNotes) {
+      await _notesRepository.deleteNote(note.id);
+    }
+
+    emit(state.copyWith(
+      selectedNotes: const <Note>[],
+      selectionView: NotesSelectionView.notSelected,
+    ));
   }
 
   FutureOr<void> _onUndoDeletionRequested(
     NotesOverviewUndoNoteDeletionRequested event,
     Emitter<NotesOverviewState> emit,
   ) async {
-    assert(
-      state.lastDeletedNote != null,
-      'last deleted note cannot be null',
-    );
+    final notesToBeRestored = state.lastDeletedNotes;
 
-    final note = state.lastDeletedNote!;
-    emit(state.copyWith(lastDeletedNote: note));
-    await _notesRepository.saveNote(note);
+    for (final note in notesToBeRestored) {
+      await _notesRepository.saveNote(note);
+    }
+
+    emit(state.copyWith(lastDeletedNotes: const <Note>[]));
   }
 
   FutureOr<void> _onNoteViewChanged(
     NotesOverviewNoteViewChanged event,
     Emitter<NotesOverviewState> emit,
   ) async {
-    emit(state.copyWith(view: event.view));
+    emit(state.copyWith(orientationView: event.orientationView));
   }
 }

@@ -26,14 +26,16 @@ class NotesOverviewView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notes Keep'),
-        elevation: 0.0,
-        scrolledUnderElevation: 2.5,
-        actions: const [
-          NotesOverviewChangeViewButton(),
-          ProfileButton(),
-        ],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: BlocBuilder<NotesOverviewBloc, NotesOverviewState>(
+          builder: (context, state) {
+            if (state.selectionView.isNotSelected) {
+              return const _NotesOverviewGeneralAppBar();
+            }
+            return const _NotesOverviewSelectionAppBar();
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -54,6 +56,8 @@ class NotesOverviewView extends StatelessWidget {
           },
           child: BlocBuilder<NotesOverviewBloc, NotesOverviewState>(
             builder: (context, state) {
+              final orientationView = state.orientationView;
+
               if (state.notes.isEmpty) {
                 if (state.status == NotesOverviewStatus.loading) {
                   return const Center(child: CupertinoActivityIndicator());
@@ -64,6 +68,7 @@ class NotesOverviewView extends StatelessWidget {
                 }
               }
 
+              final bloc = context.read<NotesOverviewBloc>();
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -72,17 +77,24 @@ class NotesOverviewView extends StatelessWidget {
                   Expanded(
                     child: SingleChildScrollView(
                       child: StaggeredGrid.count(
-                        crossAxisCount: state.view.isMultiColumn ? 2 : 1,
+                        crossAxisCount: orientationView.isMultiColumn ? 2 : 1,
                         axisDirection: AxisDirection.down,
                         crossAxisSpacing: 2,
                         children: [
                           for (final note in state.notes)
                             NotesOverviewSingleNoteTile(
                               note: note,
-                              onTap: () => Navigator.of(context).push(
-                                EditNotePage.route(initialNote: note),
+                              onTap: () => state.selectionView.isSelected
+                                  ? bloc.add(
+                                      NotesOverviewNoteSelectionRequested(note),
+                                    )
+                                  : Navigator.of(context).push(
+                                      EditNotePage.route(initialNote: note),
+                                    ),
+                              onLongPress: () => bloc.add(
+                                NotesOverviewNoteSelectionRequested(note),
                               ),
-                              onDeleted: () {},
+                              isSelected: state.selectedNotes.contains(note),
                             ),
                         ],
                       ),
@@ -94,6 +106,52 @@ class NotesOverviewView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _NotesOverviewGeneralAppBar extends StatelessWidget {
+  const _NotesOverviewGeneralAppBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: const Text('Notes Keep'),
+      elevation: 0.0,
+      scrolledUnderElevation: 2.5,
+      actions: const [
+        NotesOverviewChangeViewButton(),
+        ProfileButton(),
+      ],
+    );
+  }
+}
+
+class _NotesOverviewSelectionAppBar extends StatelessWidget {
+  const _NotesOverviewSelectionAppBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.select((NotesOverviewBloc bloc) => bloc.state);
+
+    return AppBar(
+      title: Text(state.selectedNotes.length.toString()),
+      leading: IconButton(
+        onPressed: () => context.read<NotesOverviewBloc>().add(
+              const NotesOverviewNoteClearSelection(),
+            ),
+        icon: const Icon(Icons.clear),
+      ),
+      elevation: 2.5,
+      scrolledUnderElevation: 2.5,
+      actions: [
+        IconButton(
+          onPressed: () => context.read<NotesOverviewBloc>().add(
+                const NotesOverviewNoteDeleted(),
+              ),
+          icon: const Icon(Icons.delete_outline),
+        ),
+      ],
     );
   }
 }
