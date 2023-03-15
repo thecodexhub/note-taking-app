@@ -39,21 +39,52 @@ class NotesOverviewView extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: BlocListener<NotesOverviewBloc, NotesOverviewState>(
-          listenWhen: (previous, current) => previous.status != current.status,
-          listener: (context, state) {
-            if (state.status == NotesOverviewStatus.failure) {
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Something went wrong. Please restart the app!',
+        child: MultiBlocListener(
+          listeners: [
+            BlocListener<NotesOverviewBloc, NotesOverviewState>(
+              listenWhen: (previous, current) =>
+                  previous.status != current.status,
+              listener: (context, state) {
+                if (state.status == NotesOverviewStatus.failure) {
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Something went wrong. Please restart the app!',
+                        ),
+                      ),
+                    );
+                }
+              },
+            ),
+            BlocListener<NotesOverviewBloc, NotesOverviewState>(
+              listenWhen: (previous, current) =>
+                  current.lastDeletedNotes.isNotEmpty &&
+                  previous.lastDeletedNotes != current.lastDeletedNotes,
+              listener: (context, state) {
+                final messenger = ScaffoldMessenger.of(context);
+                messenger
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '${state.lastDeletedNotes.length} note(s) deleted.',
+                      ),
+                      action: SnackBarAction(
+                        label: 'Undo',
+                        onPressed: () {
+                          messenger.hideCurrentSnackBar();
+                          context.read<NotesOverviewBloc>().add(
+                                const NotesOverviewUndoNoteDeletionRequested(),
+                              );
+                        },
+                      ),
                     ),
-                  ),
-                );
-            }
-          },
+                  );
+              },
+            ),
+          ],
           child: BlocBuilder<NotesOverviewBloc, NotesOverviewState>(
             builder: (context, state) {
               final orientationView = state.orientationView;
