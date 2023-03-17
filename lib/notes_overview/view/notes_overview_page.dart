@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:note_taking_app/edit_note/edit_note.dart';
 import 'package:note_taking_app/notes_overview/notes_overview.dart';
+import 'package:notes_api/notes_api.dart';
 import 'package:notes_repository/notes_repository.dart';
 
 class NotesOverviewPage extends StatelessWidget {
@@ -87,7 +89,7 @@ class NotesOverviewView extends StatelessWidget {
           ],
           child: BlocBuilder<NotesOverviewBloc, NotesOverviewState>(
             builder: (context, state) {
-              final orientationView = state.orientationView;
+              final isMultiColumn = state.orientationView.isMultiColumn;
 
               if (state.notes.isEmpty) {
                 if (state.status == NotesOverviewStatus.loading) {
@@ -99,7 +101,6 @@ class NotesOverviewView extends StatelessWidget {
                 }
               }
 
-              final bloc = context.read<NotesOverviewBloc>();
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -107,27 +108,28 @@ class NotesOverviewView extends StatelessWidget {
                   const SizedBox(height: 8),
                   Expanded(
                     child: SingleChildScrollView(
-                      child: StaggeredGrid.count(
-                        crossAxisCount: orientationView.isMultiColumn ? 2 : 1,
-                        axisDirection: AxisDirection.down,
-                        crossAxisSpacing: 2,
-                        children: [
-                          for (final note in state.notes)
-                            NotesOverviewSingleNoteTile(
-                              note: note,
-                              onTap: () => state.selectionView.isSelected
-                                  ? bloc.add(
-                                      NotesOverviewNoteSelectionRequested(note),
-                                    )
-                                  : Navigator.of(context).push(
-                                      EditNotePage.route(initialNote: note),
+                      child: AnimationLimiter(
+                        child: StaggeredGrid.count(
+                          crossAxisCount: isMultiColumn ? 2 : 1,
+                          axisDirection: AxisDirection.down,
+                          crossAxisSpacing: 2,
+                          children: [
+                            for (final note in state.notes)
+                              AnimationConfiguration.staggeredGrid(
+                                position: state.notes.indexOf(note),
+                                columnCount: isMultiColumn ? 2 : 1,
+                                duration: const Duration(milliseconds: 700),
+                                child: SlideAnimation(
+                                  horizontalOffset: 50.0,
+                                  child: FadeInAnimation(
+                                    child: _NotesOverviewSingleNoteTileWidget(
+                                      note: note,
                                     ),
-                              onLongPress: () => bloc.add(
-                                NotesOverviewNoteSelectionRequested(note),
+                                  ),
+                                ),
                               ),
-                              isSelected: state.selectedNotes.contains(note),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -137,6 +139,34 @@ class NotesOverviewView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _NotesOverviewSingleNoteTileWidget extends StatelessWidget {
+  const _NotesOverviewSingleNoteTileWidget({
+    required this.note,
+  });
+
+  final Note note;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.select((NotesOverviewBloc bloc) => bloc.state);
+
+    return NotesOverviewSingleNoteTile(
+      note: note,
+      onTap: () => state.selectionView.isSelected
+          ? context.read<NotesOverviewBloc>().add(
+                NotesOverviewNoteSelectionRequested(note),
+              )
+          : Navigator.of(context).push(
+              EditNotePage.route(initialNote: note),
+            ),
+      onLongPress: () => context.read<NotesOverviewBloc>().add(
+            NotesOverviewNoteSelectionRequested(note),
+          ),
+      isSelected: state.selectedNotes.contains(note),
     );
   }
 }
