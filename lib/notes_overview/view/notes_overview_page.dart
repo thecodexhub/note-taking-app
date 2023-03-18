@@ -6,24 +6,22 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:note_taking_app/edit_note/edit_note.dart';
 import 'package:note_taking_app/notes_overview/notes_overview.dart';
 import 'package:notes_api/notes_api.dart';
-import 'package:notes_repository/notes_repository.dart';
 
-class NotesOverviewPage extends StatelessWidget {
+class NotesOverviewPage extends StatefulWidget {
   const NotesOverviewPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider<NotesOverviewBloc>(
-      create: (context) => NotesOverviewBloc(
-        notesRepository: context.read<NotesRepository>(),
-      )..add(const NotesOverviewSubscriptionRequested()),
-      child: const NotesOverviewView(),
-    );
-  }
+  State<NotesOverviewPage> createState() => _NotesOverviewPageState();
 }
 
-class NotesOverviewView extends StatelessWidget {
-  const NotesOverviewView({super.key});
+class _NotesOverviewPageState extends State<NotesOverviewPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<NotesOverviewBloc>().add(
+          const NotesOverviewSubscriptionRequested(),
+        );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,134 +37,137 @@ class NotesOverviewView extends StatelessWidget {
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: MultiBlocListener(
-          listeners: [
-            BlocListener<NotesOverviewBloc, NotesOverviewState>(
-              listenWhen: (previous, current) =>
-                  previous.status != current.status,
-              listener: (context, state) {
-                if (state.status == NotesOverviewStatus.failure) {
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Something went wrong. Please restart the app!',
-                        ),
-                      ),
-                    );
-                }
-              },
-            ),
-            BlocListener<NotesOverviewBloc, NotesOverviewState>(
-              listenWhen: (previous, current) =>
-                  current.lastDeletedNotes.isNotEmpty &&
-                  previous.lastDeletedNotes != current.lastDeletedNotes,
-              listener: (context, state) {
-                final messenger = ScaffoldMessenger.of(context);
-                messenger
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        '${state.lastDeletedNotes.length} note(s) deleted.',
-                      ),
-                      action: SnackBarAction(
-                        label: 'Undo',
-                        onPressed: () {
-                          messenger.hideCurrentSnackBar();
-                          context.read<NotesOverviewBloc>().add(
-                                const NotesOverviewUndoNoteDeletionRequested(),
-                              );
-                        },
-                      ),
-                    ),
-                  );
-              },
-            ),
-          ],
-          child: BlocBuilder<NotesOverviewBloc, NotesOverviewState>(
-            builder: (context, state) {
-              final isMultiColumn = state.orientationView.isMultiColumn;
-
-              if (state.notes.isEmpty) {
-                if (state.status == NotesOverviewStatus.loading) {
-                  return const Center(child: CupertinoActivityIndicator());
-                } else if (state.status == NotesOverviewStatus.success) {
-                  return const EmptyNotesOverviewContent();
-                } else {
-                  return const SizedBox();
-                }
-              }
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const NotesOverviewNotification(),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: AnimationLimiter(
-                        child: StaggeredGrid.count(
-                          crossAxisCount: isMultiColumn ? 2 : 1,
-                          axisDirection: AxisDirection.down,
-                          crossAxisSpacing: 2,
-                          children: [
-                            for (final note in state.notes)
-                              AnimationConfiguration.staggeredGrid(
-                                position: state.notes.indexOf(note),
-                                columnCount: isMultiColumn ? 2 : 1,
-                                duration: const Duration(milliseconds: 700),
-                                child: SlideAnimation(
-                                  horizontalOffset: 50.0,
-                                  child: FadeInAnimation(
-                                    child: _NotesOverviewSingleNoteTileWidget(
-                                      note: note,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
+      body: const Padding(
+        padding: EdgeInsets.all(8.0),
+        child: NotesOverviewView(),
       ),
     );
   }
 }
 
-class _NotesOverviewSingleNoteTileWidget extends StatelessWidget {
-  const _NotesOverviewSingleNoteTileWidget({
-    required this.note,
-  });
+class NotesOverviewView extends StatelessWidget {
+  const NotesOverviewView({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<NotesOverviewBloc, NotesOverviewState>(
+          listenWhen: (previous, current) => previous.status != current.status,
+          listener: (context, state) {
+            if (state.status == NotesOverviewStatus.failure) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Something went wrong. Please restart the app!',
+                    ),
+                  ),
+                );
+            }
+          },
+        ),
+        BlocListener<NotesOverviewBloc, NotesOverviewState>(
+          listenWhen: (previous, current) =>
+              current.lastDeletedNotes.isNotEmpty &&
+              previous.lastDeletedNotes != current.lastDeletedNotes,
+          listener: (context, state) {
+            final messenger = ScaffoldMessenger.of(context);
+            messenger
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: Text(
+                    '${state.lastDeletedNotes.length} note(s) deleted.',
+                  ),
+                  action: SnackBarAction(
+                    label: 'Undo',
+                    onPressed: () {
+                      messenger.hideCurrentSnackBar();
+                      context.read<NotesOverviewBloc>().add(
+                            const NotesOverviewUndoNoteDeletionRequested(),
+                          );
+                    },
+                  ),
+                ),
+              );
+          },
+        ),
+      ],
+      child: BlocBuilder<NotesOverviewBloc, NotesOverviewState>(
+        builder: (context, state) {
+          final isMultiColumn = state.orientationView.isMultiColumn;
+
+          if (state.notes.isEmpty) {
+            if (state.status == NotesOverviewStatus.loading) {
+              return const Center(child: CupertinoActivityIndicator());
+            } else if (state.status == NotesOverviewStatus.success) {
+              return const EmptyNotesOverviewContent();
+            } else {
+              return const SizedBox();
+            }
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const NotesOverviewNotification(),
+              const SizedBox(height: 8),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: AnimationLimiter(
+                    child: StaggeredGrid.count(
+                      crossAxisCount: isMultiColumn ? 2 : 1,
+                      axisDirection: AxisDirection.down,
+                      crossAxisSpacing: 2,
+                      children: [
+                        for (final note in state.notes)
+                          AnimationConfiguration.staggeredGrid(
+                            position: state.notes.indexOf(note),
+                            columnCount: isMultiColumn ? 2 : 1,
+                            duration: const Duration(milliseconds: 700),
+                            child: _AnimatedNoteTileWidget(note: note),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AnimatedNoteTileWidget extends StatelessWidget {
+  const _AnimatedNoteTileWidget({required this.note});
   final Note note;
 
   @override
   Widget build(BuildContext context) {
     final state = context.select((NotesOverviewBloc bloc) => bloc.state);
 
-    return NotesOverviewSingleNoteTile(
-      note: note,
-      onTap: () => state.selectionView.isSelected
-          ? context.read<NotesOverviewBloc>().add(
+    return SlideAnimation(
+      horizontalOffset: 50.0,
+      child: FadeInAnimation(
+        child: NotesOverviewSingleNoteTile(
+          note: note,
+          onTap: () => state.selectionView.isSelected
+              ? context.read<NotesOverviewBloc>().add(
+                    NotesOverviewNoteSelectionRequested(note),
+                  )
+              : Navigator.of(context).push(
+                  EditNotePage.route(initialNote: note),
+                ),
+          onLongPress: () => context.read<NotesOverviewBloc>().add(
                 NotesOverviewNoteSelectionRequested(note),
-              )
-          : Navigator.of(context).push(
-              EditNotePage.route(initialNote: note),
-            ),
-      onLongPress: () => context.read<NotesOverviewBloc>().add(
-            NotesOverviewNoteSelectionRequested(note),
-          ),
-      isSelected: state.selectedNotes.contains(note),
+              ),
+          isSelected: state.selectedNotes.contains(note),
+        ),
+      ),
     );
   }
 }

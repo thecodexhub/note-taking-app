@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:note_taking_app/app/app.dart';
+import 'package:note_taking_app/notes_overview/notes_overview.dart';
 import 'package:notes_repository/notes_repository.dart';
 
 class App extends StatelessWidget {
@@ -28,10 +29,19 @@ class App extends StatelessWidget {
           value: _notesRepository,
         ),
       ],
-      child: BlocProvider<AppBloc>(
-        create: (context) => AppBloc(
-          authenticationRepository: _authenticationRepository,
-        ),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<AppBloc>(
+            create: (context) => AppBloc(
+              authenticationRepository: _authenticationRepository,
+            ),
+          ),
+          BlocProvider<NotesOverviewBloc>(
+            create: (context) => NotesOverviewBloc(
+              notesRepository: _notesRepository,
+            ),
+          ),
+        ],
         child: const AppView(),
       ),
     );
